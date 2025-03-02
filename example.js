@@ -1,4 +1,3 @@
-const readline = require('readline')
 const mineflayer = require('mineflayer')
 const {
   pathfinder,
@@ -53,103 +52,12 @@ bot.once('spawn', () => {
   defaultMove.scafoldingBlocks = [] // Don't use special blocks for scaffolding
 
   bot.pathfinder.setMovements(defaultMove)
-  bot.pathfinder.thinkTimeout = 10000 // Timeout for pathfinding calculations
 
   // Initialize minecraft data
   minecraftData = require('minecraft-data')(bot.version)
 
-  // You can uncomment the function you want to test
-  // main()
 })
 
-bot.on('chat', async (username, message) => {
-  if (username === bot.username) return // Ignore messages from self
-
-  // Process commands
-  const args = message.split(' ')
-  const command = args[0]
-
-  switch (command) {
-    case 'come':
-      // Make the bot come to the player
-      const player = bot.players[username]?.entity
-      if (!player) {
-        bot.chat("I can't see you!")
-        return
-      }
-      bot.chat(`Coming to you, ${username}!`)
-      await followPlayer(username, 2)
-      break
-
-    case 'find':
-      // Find blocks of a specific type
-      if (args.length < 2) {
-        bot.chat('Usage: find <block_name>')
-        return
-      }
-      const blockName = args[1]
-      await findAndReportBlocks(blockName, 64, 5)
-      break
-
-    case 'collect':
-      // Collect nearby blocks of a specific type
-      if (args.length < 2) {
-        bot.chat('Usage: collect <block_name>')
-        return
-      }
-      const blockToCollect = args[1]
-      await collectBlocks(blockToCollect, 32, 10)
-      break
-
-    case 'inventory':
-      // Report items in inventory
-      reportInventory()
-      break
-
-    case 'craft':
-      // Craft an item
-      if (args.length < 2) {
-        bot.chat('Usage: craft <item_name> [<count>]')
-        return
-      }
-      const itemName = args[1]
-      const count = args.length > 2 ? parseInt(args[2]) : 1
-      await craftItemByName(itemName, count)
-      break
-
-    case 'place':
-      // Place a block at the player's feet
-      if (args.length < 2) {
-        bot.chat('Usage: place <block_name>')
-        return
-      }
-      const blockNameToPlace = args[1]
-      await placeBlockNearPlayer(username, blockNameToPlace)
-      break
-
-    case 'goto':
-      // Go to coordinates
-      if (args.length < 4) {
-        bot.chat('Usage: goto <x> <y> <z>')
-        return
-      }
-      const x = parseInt(args[1])
-      const y = parseInt(args[2])
-      const z = parseInt(args[3])
-      bot.chat(`Going to ${x}, ${y}, ${z}`)
-      await setPosition(x, y, z)
-      bot.chat('Arrived at destination!')
-      break
-
-    case 'help':
-      // Show available commands
-      bot.chat('Available commands:')
-      bot.chat(
-        'come, find <block>, collect <block>, inventory, craft <item> [<count>], place <block>, goto <x> <y> <z>, help'
-      )
-      break
-  }
-})
 
 // Handle errors
 bot.on('error', err => {
@@ -441,14 +349,21 @@ function countItemInInventory (itemName) {
  * @param {number} maxDistance - Maximum search distance
  * @returns {Block|null} - The crafting table block or null if none found
  */
-function findCraftingTable (maxDistance = 32) {
-  const craftingTableId = minecraftData.blocksByName.crafting_table.id
-  const craftingTablePos = bot.findBlock({
-    matching: craftingTableId,
-    maxDistance: maxDistance
-  })
+function findCraftingTable (maxDistance = 64) {
 
-  return craftingTablePos ? bot.blockAt(craftingTablePos) : null
+  const craftingTableId =  minecraftData.blocksByName['crafting_table'].id
+  const options = {
+    matching: craftingTableId,
+    maxDistance: maxDistance,
+    count: 1
+  }
+
+  console.log('Crafting Table ID:', craftingTableId)
+  const craftingTablePos = bot.findBlocks(options)[0]
+
+  console.log('Crafting Table Pos:', craftingTablePos)
+
+  return craftingTablePos != null ? bot.blockAt(craftingTablePos) : null
 }
 
 // ===== Crafting and Block Placement =====
@@ -474,6 +389,7 @@ async function craftItemByName (itemName, count = 1) {
     const recipesWithTable = bot.recipesFor(itemId, null, 1, true)
     if (recipesWithTable.length > 0) {
       craftingTable = findCraftingTable()
+      console.log('Found crafting table:', craftingTable)
       if (!craftingTable) {
         bot.chat(`I need a crafting table to craft ${itemName}`)
         return false
@@ -888,24 +804,43 @@ async function attackEntity (entityType, maxDistance = 16) {
   }
 }
 
+
+module.exports = {
+  setPosition,
+  followPlayer,
+  findBlocks,
+  // Add all other functions you want to export
+  mineBlock,
+  reportInventory,
+  craftItemByName,
+  placeBlockNearPlayer,
+  furnaceInfo,
+  useFurnace,
+  attackEntity,
+  bot,
+  minecraftData,
+  connectedToServer
+}
+
+
 // ==== Docker Test ====
 
-async function testFollowPlayer () {
-  username = 'L_H_Brandt'
-  distance = 3
-  await followPlayer(username, parseInt(distance) || 3)
-}
+// async function testFollowPlayer () {
+//   username = 'L_H_Brandt'
+//   distance = 3
+//   await followPlayer(username, parseInt(distance) || 3)
+// }
 
-function dockerTest () {
-  if (!connectedToServer) {
-    setTimeout(dockerTest, 1000)
-    return
-  }
+// function dockerTest () {
+//   if (!connectedToServer) {
+//     setTimeout(dockerTest, 1000)
+//     return
+//   }
 
-  testFollowPlayer()
-}
+//   testFollowPlayer()
+// }
 
-dockerTest()
+// dockerTest()
 
 // ===== Test Deck =====
 // Does not work in docker
