@@ -1,3 +1,30 @@
+# How to run with Node.js
+
+## Deps:
+- Node.js (version 18 or newer)
+- NPM (comes with Node.js)
+
+## Run:
+```bash
+npm install
+node your_code.js
+```
+
+# Running with Docker
+
+## Build the Docker image:
+```bash
+docker build -t my-bot .
+```
+
+## Run the Docker container:
+```bash
+docker run --network="host" my-bot
+```
+
+---
+
+
 # Mineflayer Guide: Tips, Tricks, and Example Functions
 
 ## Introduction to Mineflayer
