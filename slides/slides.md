@@ -7,23 +7,21 @@ backgroundColor: #fff
 
 <!-- _class: lead -->
 
-# Building Minecraft Bots with Mineflayer
-
-A quick guide to creating Minecraft bots with JavaScript
+# Minecraft bots med Mineflayer
 
 ![bg right:40% w:500](https://logolook.net/wp-content/uploads/2021/06/Symbol-Minecraft.png)
 
 ---
 
-# What is Mineflayer?
+# Hva er Mineflayer?
 
-Mineflayer is a powerful JavaScript library that lets you create **programmable Minecraft bots**.
+Mineflayer er et kraftig JavaScript-bibliotek som lar deg lage **programmerbare Minecraft bots**.
 
 ![bg right:30% w:300](https://www.the-sun.com/wp-content/uploads/sites/6/2023/01/lv-ai-bot-almost-lands-job-off-platform.jpg?strip=all&quality=100&w=1920&h=1080&crop=1)
 
 ---
 
-# How Mineflayer Works
+# Hvordan Mineflayer Fungerer
 
 ```javascript
 const mineflayer = require('mineflayer')
@@ -42,37 +40,37 @@ bot.on('spawn', () => {
 
 ---
 
-# Setting Up Your Development Environment
+# Sette Opp Utviklingsmiljøet
 
-## Prerequisites:
+## Forutsetninger:
 
-- Node.js (version 18 or newer)
-- NPM (comes with Node.js)
-- Code editor (e.g., VS Code)
-- Minecraft Java Edition server
-- Alternativley you can use the Dockerfile provided
+- Node.js (versjon 18 eller nyere)
+- NPM (følger med Node.js)
+- Kode-editor (f.eks. VS Code)
+- Minecraft Java Edition-server
+- Alternativt kan du bruke den medfølgende Dockerfilen
 
 ---
 
-# Using the Dockerfile
+# Bruke Dockerfilen
 
-- To build the Docker image, run:
+- For å bygge Docker-bildet, kjør:
   ```bash
   docker build -t my-bot .
   ```
-- To run the Docker container, run:
+- For å kjøre Docker-containeren, kjør:
   ```bash
   docker run --network="host" my-bot
   ```
-- The dockerfile runs your_code.js
+- Dockerfilen kjører your_code.js
 
 ---
 
-# Key Concepts in Mineflayer
+# Sentrale Konsepter i Mineflayer
 
-## Event-Driven Programming
+## Hendelsesdrevet Programmering
 
-Respond to in-game events using event listeners
+Svar på events i spillet ved hjelp av event listeners:
 
 ```javascript
 bot.on('chat', (username, message) => {
@@ -85,7 +83,7 @@ bot.on('chat', (username, message) => {
 
 ## Async/Await
 
-Most Mineflayer actions return promises
+De fleste Mineflayer-handlinger returnerer promises:
 
 ```javascript
 async function goMining() {
@@ -97,9 +95,9 @@ async function goMining() {
 
 ---
 
-# Working with Minecraft Data
+# Arbeide med Minecraft-Data
 
-Converting between names and IDs is a common challenge:
+Konvertering mellom block navn og ID-er er en vanlig utfordring:
 
 ```javascript
 // Initialize minecraft-data with your bot's version
@@ -124,9 +122,9 @@ function getItemId(itemName) {
 
 ---
 
-# Working with Positions and Vectors
+# Arbeide med Posisjoner og Vektorer
 
-Always use Vec3 for position calculations:
+Bruk alltid Vec3 for posisjonskalkuleringer:
 
 ```javascript
 const Vec3 = require('vec3').Vec3
@@ -148,40 +146,72 @@ const direction = position.minus(bot.entity.position).normalize()
 
 ---
 
+# Plassere blocks
+
+```javascript
+/**
+ * Places a block at a specific position
+ * @param {number} x - X coordinate of reference block
+ * @param {number} y - Y coordinate of reference block
+ * @param {number} z - Z coordinate of reference block
+ * @param {number} face_x - X component of face vector
+ * @param {number} face_y - Y component of face vector
+ * @param {number} face_z - Z component of face vector
+ * @param {object} item - The item to place
+ */
+async function placeBlock (x, y, z, face_x, face_y, face_z, item) 
+```
+
+* Flatevektoren kan være litt vanskelig å forstå. Den er flaten til referanseblokken som du plasserer blokken på.
+
+---
+
+## Fra Dokumentasjonen
+
+* Flatevektor - en av de seks kardinalretningene, som f.eks. new Vec3(0, 1, 0) for topp-flaten, som indikerer hvilken flate av referanseblokken du plasserer blokken mot.
+
+* Den nye blokken vil bli plassert ved referanseblokk.posisjon.pluss(flatevektor).
+
+* Om du skal plassere en block som ikke er på toppen av en annen block må du teste litt 
+
+---
+
 <!-- _class: lead -->
 
-# Example Functions
+# Eksempelfunksjoner
 
-I have several example functions that I have stolen from another course that Ive held. They are all in the example.js file. And are all quickly presented in the README.md file.
+Jeg har flere eksempelfunksjoner som jeg har hentet fra et annet kurs jeg har holdt. De finnes alle i example.js-filen og er raskt presentert i README.md-filen. De er også importert i your_code.js-filen.
 
 ![bg right:30% w:600](https://i.kym-cdn.com/entries/icons/original/000/044/615/minecraftdirt.jpg)
 
 ---
 
+## Eksempler på ting boten kan gjøre
 
-## Lets make some bots
+* Mange ting du kan gjøre med boten, her er noen eksempler:
 
-* Many things that you can do with the bot, here are some examples:
+1. **Svare på kommandoer** via chat
+2. **Samle ressurser** automatisk for deg
+3. **Lage gjenstander** når det trengs
+4. **Bygge strukturer** Veldig vanskelig
+5. **Kjempe mot fiender** og beskytte deg
+6. **Utforske verden** og kartlegge den
+7. **Følge deg** rundt
 
-1. **Respond to commands** via chat
-2. **Gather resources** for you automatically
-3. **Craft items** when needed
-4. **Build structures** Very Hard
-5. **Fight enemies** and protect you
-6. **Explore the world** and map it out
-7. **Follow you** around 
+* For å gjøre ting enkelt kan de fleste av disse tingene gjøres ved å kombinere funksjonene jeg har i example.js-filen.
 
-* To make things easy most of these above things can be done by combining the functions I have in the example.js file.
+---
 
+# Kjapp Gjennomgang av Eksempel
 
 ---
 
 
-# Thank You!
 
-## Resources:
+# Takk!
 
-- Official Docs: https://github.com/PrismarineJS/mineflayer/blob/master/docs/api.md
-- Examples: https://github.com/PrismarineJS/mineflayer/tree/master/examples
+## Ressurser:
 
-
+- Offisiell Dokumentasjon: https://github.com/PrismarineJS/mineflayer/blob/master/docs/api.md
+- Navn på Minecraft-Blokker: https://minecraft-ids.grahamedgecombe.com
+- Eksempler: https://github.com/PrismarineJS/mineflayer/tree/master/examples
