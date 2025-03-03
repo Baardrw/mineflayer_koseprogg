@@ -1,4 +1,4 @@
-const mineflayer = require('mineflayer')
+const mineflayer = require("mineflayer");
 const {
   pathfinder,
   Movements,
@@ -8,69 +8,67 @@ const {
     GoalLookAtBlock,
     GoalPlaceBlock,
     GoalFollow,
-    GoalBlock
-  }
-} = require('mineflayer-pathfinder')
-const toolPlugin = require('mineflayer-tool').plugin
-const collectBlock = require('mineflayer-collectblock').plugin
-const Vec3 = require('vec3').Vec3
+    GoalBlock,
+  },
+} = require("mineflayer-pathfinder");
+const toolPlugin = require("mineflayer-tool").plugin;
+const collectBlock = require("mineflayer-collectblock").plugin;
+const Vec3 = require("vec3").Vec3;
 
 // ===== Bot Configuration =====
 // Simply edit these values to connect to your own server
 const BOT_CONFIG = {
-  host: 'localhost',
+  host: "localhost",
   port: 25565,
-  username: 'ExampleBot',
+  username: "ExampleBot",
   version: false, // Set a specific version or false to auto-detect
-  auth: 'offline', // Use 'microsoft' for premium accounts
-  hideErrors: false
-}
+  auth: "offline", // Use 'microsoft' for premium accounts
+  hideErrors: false,
+};
 
-console.log('Creating bot...')
-const bot = mineflayer.createBot(BOT_CONFIG)
+console.log("Creating bot...");
+const bot = mineflayer.createBot(BOT_CONFIG);
 
 // Load plugins
-bot.loadPlugin(pathfinder)
-bot.loadPlugin(toolPlugin)
-bot.loadPlugin(collectBlock)
+bot.loadPlugin(pathfinder);
+bot.loadPlugin(toolPlugin);
+bot.loadPlugin(collectBlock);
 
 // Global variables
-let minecraftData = null
-let connectedToServer = false
+let minecraftData = null;
+let connectedToServer = false;
 
 // ===== Bot Events =====
-bot.once('spawn', () => {
-  console.log('Bot spawned!')
-  bot.chat('Hello, I am a Mineflayer bot!')
+bot.once("spawn", () => {
+  console.log("Bot spawned!");
+  bot.chat("Hello, I am a Mineflayer bot!");
 
-  connectedToServer = true
+  connectedToServer = true;
 
   // Configure bot movement
-  const defaultMove = new Movements(bot)
-  defaultMove.allow1by1towers = false // Don't build 1x1 towers when climbing
-  defaultMove.canDig = true // Allow the bot to dig blocks in its way
-  defaultMove.scafoldingBlocks = [] // Don't use special blocks for scaffolding
+  const defaultMove = new Movements(bot);
+  defaultMove.allow1by1towers = false; // Don't build 1x1 towers when climbing
+  defaultMove.canDig = true; // Allow the bot to dig blocks in its way
+  defaultMove.scafoldingBlocks = []; // Don't use special blocks for scaffolding
 
-  bot.pathfinder.setMovements(defaultMove)
+  bot.pathfinder.setMovements(defaultMove);
 
-  // Initialize minecraft data
-  minecraftData = require('minecraft-data')(bot.version)
-
-})
-
+  // Initialize Minecraft data
+  minecraftData = require("minecraft-data")(bot.version);
+});
 
 // Handle errors
-bot.on('error', err => {
-  console.error('Bot error:', err)
-})
+bot.on("error", (err) => {
+  console.error("Bot error:", err);
+});
 
-bot.on('kicked', reason => {
-  console.log('Bot was kicked from the server:', reason)
-})
+bot.on("kicked", (reason) => {
+  console.log("Bot was kicked from the server:", reason);
+});
 
-bot.on('end', () => {
-  console.log('Bot disconnected from the server')
-})
+bot.on("end", () => {
+  console.log("Bot disconnected from the server");
+});
 
 // ===== Movement Functions =====
 
@@ -81,21 +79,21 @@ bot.on('end', () => {
  * @param {number} z - Z coordinate
  * @returns {Promise<boolean>} - Whether the movement was successful
  */
-async function setPosition (x, y, z) {
-  console.log(`Moving to: ${x}, ${y}, ${z}`)
+async function setPosition(x, y, z) {
+  console.log(`Moving to: ${x}, ${y}, ${z}`);
 
   // Clear current pathfinding goal
-  bot.pathfinder.setGoal(null)
+  bot.pathfinder.setGoal(null);
 
   // Create goal based on whether a Y coordinate was specified
-  const goal = y === -1 ? new GoalNearXZ(x, z, 1) : new GoalNear(x, y, z, 1)
+  const goal = y === -1 ? new GoalNearXZ(x, z, 1) : new GoalNear(x, y, z, 1);
 
   try {
-    await bot.pathfinder.goto(goal)
-    return true
+    await bot.pathfinder.goto(goal);
+    return true;
   } catch (error) {
-    console.error('Failed to reach destination:', error)
-    return false
+    console.error("Failed to reach destination:", error);
+    return false;
   }
 }
 
@@ -104,20 +102,20 @@ async function setPosition (x, y, z) {
  * @param {string} username - The username of the player to follow
  * @param {number} distance - How close to get to the player
  */
-async function followPlayer (username, distance = 3) {
-  const player = bot.players[username]
+async function followPlayer(username, distance = 3) {
+  const player = bot.players[username];
 
   if (!player || !player.entity) {
-    bot.chat(`I can't see ${username}`)
-    return false
+    bot.chat(`I can't see ${username}`);
+    return false;
   }
 
-  const goal = new GoalFollow(player.entity, distance)
-  bot.pathfinder.setGoal(goal, true) // true means dynamic goal that updates with player movement
+  const goal = new GoalFollow(player.entity, distance);
+  bot.pathfinder.setGoal(goal, true); // true means dynamic goal that updates with player movement
 
   // Wait a bit while following before returning
-  await new Promise(resolve => setTimeout(resolve, 5000))
-  return true
+  await new Promise((resolve) => setTimeout(resolve, 5000));
+  return true;
 }
 
 // ===== Block Finding and Collection =====
@@ -129,22 +127,22 @@ async function followPlayer (username, distance = 3) {
  * @param {number} count - Maximum number of blocks to find
  * @returns {Array<Vec3>} - Array of block positions
  */
-function findBlocks (blockName, maxDistance = 64, count = 10) {
+function findBlocks(blockName, maxDistance = 64, count = 10) {
   // Check if block exists in this version
   if (!minecraftData.blocksByName[blockName]) {
-    console.log(`Block "${blockName}" not found in this Minecraft version`)
-    return []
+    console.log(`Block "${blockName}" not found in this Minecraft version`);
+    return [];
   }
 
-  const blockId = minecraftData.blocksByName[blockName].id
+  const blockId = minecraftData.blocksByName[blockName].id;
 
   const options = {
     matching: blockId,
     maxDistance: maxDistance,
-    count: count
-  }
+    count: count,
+  };
 
-  return bot.findBlocks(options)
+  return bot.findBlocks(options);
 }
 
 /**
@@ -153,23 +151,23 @@ function findBlocks (blockName, maxDistance = 64, count = 10) {
  * @param {number} maxDistance - Maximum search distance
  * @param {number} count - Maximum number of blocks to find
  */
-async function findAndReportBlocks (blockName, maxDistance = 64, count = 5) {
-  const blocks = findBlocks(blockName, maxDistance, count)
+async function findAndReportBlocks(blockName, maxDistance = 64, count = 5) {
+  const blocks = findBlocks(blockName, maxDistance, count);
 
   if (blocks.length === 0) {
-    bot.chat(`No ${blockName} blocks found within ${maxDistance} blocks`)
-    return false
+    bot.chat(`No ${blockName} blocks found within ${maxDistance} blocks`);
+    return false;
   }
 
-  bot.chat(`Found ${blocks.length} ${blockName} blocks:`)
-  blocks.forEach(blockPos => {
-    const distance = Math.round(bot.entity.position.distanceTo(blockPos))
+  bot.chat(`Found ${blocks.length} ${blockName} blocks:`);
+  blocks.forEach((blockPos) => {
+    const distance = Math.round(bot.entity.position.distanceTo(blockPos));
     bot.chat(
-      `- ${blockName} at (${blockPos.x}, ${blockPos.y}, ${blockPos.z}), ${distance} blocks away`
-    )
-  })
+      `- ${blockName} at (${blockPos.x}, ${blockPos.y}, ${blockPos.z}), ${distance} blocks away`,
+    );
+  });
 
-  return true
+  return true;
 }
 
 /**
@@ -178,39 +176,41 @@ async function findAndReportBlocks (blockName, maxDistance = 64, count = 5) {
  * @param {number} maxDistance - Maximum search distance
  * @param {number} count - Maximum number of blocks to collect
  */
-async function collectBlocks (blockName, maxDistance = 32, count = 5) {
+async function collectBlocks(blockName, maxDistance = 32, count = 5) {
   if (!minecraftData.blocksByName[blockName]) {
-    bot.chat(`Block "${blockName}" not found in this Minecraft version`)
-    return false
+    bot.chat(`Block "${blockName}" not found in this Minecraft version`);
+    return false;
   }
 
-  const blockId = minecraftData.blocksByName[blockName].id
-  const blocks = findBlocks(blockName, maxDistance, count)
+  const blockId = minecraftData.blocksByName[blockName].id;
+  const blocks = findBlocks(blockName, maxDistance, count);
 
   if (blocks.length === 0) {
-    bot.chat(`No ${blockName} blocks found within ${maxDistance} blocks`)
-    return false
+    bot.chat(`No ${blockName} blocks found within ${maxDistance} blocks`);
+    return false;
   }
 
-  bot.chat(`Found ${blocks.length} ${blockName} blocks. Starting collection...`)
+  bot.chat(
+    `Found ${blocks.length} ${blockName} blocks. Starting collection...`,
+  );
 
-  let collected = 0
+  let collected = 0;
   for (const blockPos of blocks) {
     bot.chat(
-      `Mining ${blockName} at (${blockPos.x}, ${blockPos.y}, ${blockPos.z})`
-    )
+      `Mining ${blockName} at (${blockPos.x}, ${blockPos.y}, ${blockPos.z})`,
+    );
 
-    const success = await mineBlock(blockPos.x, blockPos.y, blockPos.z)
+    const success = await mineBlock(blockPos.x, blockPos.y, blockPos.z);
     if (success) {
-      collected++
-      bot.chat(`Collected ${collected}/${blocks.length} ${blockName} blocks`)
+      collected++;
+      bot.chat(`Collected ${collected}/${blocks.length} ${blockName} blocks`);
     }
   }
 
   bot.chat(
-    `Collection complete. Collected ${collected}/${blocks.length} ${blockName} blocks`
-  )
-  return collected > 0
+    `Collection complete. Collected ${collected}/${blocks.length} ${blockName} blocks`,
+  );
+  return collected > 0;
 }
 
 /**
@@ -220,67 +220,67 @@ async function collectBlocks (blockName, maxDistance = 32, count = 5) {
  * @param {number} z - Z coordinate
  * @returns {Promise<boolean>} - Whether the block was successfully mined
  */
-async function mineBlock (x, y, z) {
-  const blockPos = new Vec3(x, y, z)
-  const block = bot.blockAt(blockPos)
+async function mineBlock(x, y, z) {
+  const blockPos = new Vec3(x, y, z);
+  const block = bot.blockAt(blockPos);
 
-  if (!block || block.name === 'air') {
-    console.log('No block at specified position')
-    return false
+  if (!block || block.name === "air") {
+    console.log("No block at specified position");
+    return false;
   }
 
-  console.log(`Mining block: ${block.displayName} at (${x}, ${y}, ${z})`)
+  console.log(`Mining block: ${block.displayName} at (${x}, ${y}, ${z})`);
 
   // Equip the appropriate tool
   try {
-    await bot.tool.equipForBlock(block)
+    await bot.tool.equipForBlock(block);
   } catch (error) {
-    console.log(`Failed to equip appropriate tool: ${error.message}`)
+    console.log(`Failed to equip appropriate tool: ${error.message}`);
   }
 
-  const heldItem = bot.heldItem
+  const heldItem = bot.heldItem;
   if (heldItem && !block.canHarvest(heldItem.type)) {
     console.log(
-      `Cannot harvest ${block.displayName} with ${heldItem.displayName}`
-    )
-    return false
+      `Cannot harvest ${block.displayName} with ${heldItem.displayName}`,
+    );
+    return false;
   }
 
   // Move to the block
   try {
-    const goal = new GoalLookAtBlock(blockPos, bot.world)
-    await bot.pathfinder.goto(goal)
+    const goal = new GoalLookAtBlock(blockPos, bot.world);
+    await bot.pathfinder.goto(goal);
   } catch (error) {
-    console.log(`Failed to reach the block: ${error.message}`)
-    return false
+    console.log(`Failed to reach the block: ${error.message}`);
+    return false;
   }
 
   // Ensure we still have the right tool equipped
-  await bot.tool.equipForBlock(block)
+  await bot.tool.equipForBlock(block);
 
   if (!bot.canDigBlock(block)) {
-    console.log(`Cannot dig ${block.displayName}`)
-    return false
+    console.log(`Cannot dig ${block.displayName}`);
+    return false;
   }
 
   // Dig the block
   try {
-    await bot.dig(block)
+    await bot.dig(block);
   } catch (error) {
-    console.log(`Error mining block: ${error.message}`)
-    return false
+    console.log(`Error mining block: ${error.message}`);
+    return false;
   }
 
   // Wait a moment for the block to drop as an item
-  await new Promise(resolve => setTimeout(resolve, 300))
+  await new Promise((resolve) => setTimeout(resolve, 300));
 
   // Try to collect nearby items
-  const nearbyEntities = Object.values(bot.entities)
+  const nearbyEntities = Object.values(bot.entities);
   const items = nearbyEntities.filter(
-    entity =>
-      entity.name === 'item' &&
-      entity.position.distanceTo(bot.entity.position) < 10
-  )
+    (entity) =>
+      entity.name === "item" &&
+      entity.position.distanceTo(bot.entity.position) < 10,
+  );
 
   for (const item of items) {
     try {
@@ -288,16 +288,16 @@ async function mineBlock (x, y, z) {
         item.position.x,
         item.position.y,
         item.position.z,
-        1
-      )
-      await bot.pathfinder.goto(goal)
+        1,
+      );
+      await bot.pathfinder.goto(goal);
       // Just getting close is usually enough as items are auto-collected
     } catch (error) {
-      console.log(`Failed to collect item: ${error.message}`)
+      console.log(`Failed to collect item: ${error.message}`);
     }
   }
 
-  return true
+  return true;
 }
 
 // ===== Inventory Management =====
@@ -305,26 +305,26 @@ async function mineBlock (x, y, z) {
 /**
  * Reports the bot's inventory in chat
  */
-function reportInventory () {
-  const items = getInventory()
+function reportInventory() {
+  const items = getInventory();
 
   if (items.length === 0) {
-    bot.chat('My inventory is empty')
-    return
+    bot.chat("My inventory is empty");
+    return;
   }
 
-  bot.chat('My inventory contains:')
-  items.forEach(item => {
-    bot.chat(`- ${item.count}x ${item.displayName}`)
-  })
+  bot.chat("My inventory contains:");
+  items.forEach((item) => {
+    bot.chat(`- ${item.count}x ${item.displayName}`);
+  });
 }
 
 /**
  * Gets all items in the bot's inventory
  * @returns {Array} - Array of Item objects
  */
-function getInventory () {
-  return bot.inventory.items()
+function getInventory() {
+  return bot.inventory.items();
 }
 
 /**
@@ -332,16 +332,16 @@ function getInventory () {
  * @param {string} itemName - The name of the item to count
  * @returns {number} - The number of items of that type
  */
-function countItemInInventory (itemName) {
+function countItemInInventory(itemName) {
   if (!minecraftData.itemsByName[itemName]) {
-    console.log(`Item "${itemName}" not found in this Minecraft version`)
-    return 0
+    console.log(`Item "${itemName}" not found in this Minecraft version`);
+    return 0;
   }
 
-  const itemId = minecraftData.itemsByName[itemName].id
-  const items = getInventory().filter(item => item.type === itemId)
+  const itemId = minecraftData.itemsByName[itemName].id;
+  const items = getInventory().filter((item) => item.type === itemId);
 
-  return items.reduce((total, item) => total + item.count, 0)
+  return items.reduce((total, item) => total + item.count, 0);
 }
 
 /**
@@ -349,21 +349,20 @@ function countItemInInventory (itemName) {
  * @param {number} maxDistance - Maximum search distance
  * @returns {Block|null} - The crafting table block or null if none found
  */
-function findCraftingTable (maxDistance = 64) {
-
-  const craftingTableId =  minecraftData.blocksByName['crafting_table'].id
+function findCraftingTable(maxDistance = 64) {
+  const craftingTableId = minecraftData.blocksByName["crafting_table"].id;
   const options = {
     matching: craftingTableId,
     maxDistance: maxDistance,
-    count: 1
-  }
+    count: 1,
+  };
 
-  console.log('Crafting Table ID:', craftingTableId)
-  const craftingTablePos = bot.findBlocks(options)[0]
+  console.log("Crafting Table ID:", craftingTableId);
+  const craftingTablePos = bot.findBlocks(options)[0];
 
-  console.log('Crafting Table Pos:', craftingTablePos)
+  console.log("Crafting Table Pos:", craftingTablePos);
 
-  return craftingTablePos != null ? bot.blockAt(craftingTablePos) : null
+  return craftingTablePos != null ? bot.blockAt(craftingTablePos) : null;
 }
 
 // ===== Crafting and Block Placement =====
@@ -373,63 +372,63 @@ function findCraftingTable (maxDistance = 64) {
  * @param {string} itemName - The name of the item to craft
  * @param {number} count - How many to craft
  */
-async function craftItemByName (itemName, count = 1) {
+async function craftItemByName(itemName, count = 1) {
   if (!minecraftData.itemsByName[itemName]) {
-    bot.chat(`Item "${itemName}" not found in this Minecraft version`)
-    return false
+    bot.chat(`Item "${itemName}" not found in this Minecraft version`);
+    return false;
   }
 
-  const itemId = minecraftData.itemsByName[itemName].id
+  const itemId = minecraftData.itemsByName[itemName].id;
 
   // Find a crafting table if needed
-  let craftingTable = null
-  const recipes = bot.recipesFor(itemId, null, 1, null)
+  let craftingTable = null;
+  const recipes = bot.recipesFor(itemId, null, 1, null);
 
   if (recipes.length === 0) {
-    const recipesWithTable = bot.recipesFor(itemId, null, 1, true)
+    const recipesWithTable = bot.recipesFor(itemId, null, 1, true);
     if (recipesWithTable.length > 0) {
-      craftingTable = findCraftingTable()
-      console.log('Found crafting table:', craftingTable)
+      craftingTable = findCraftingTable();
+      console.log("Found crafting table:", craftingTable);
       if (!craftingTable) {
-        bot.chat(`I need a crafting table to craft ${itemName}`)
-        return false
+        bot.chat(`I need a crafting table to craft ${itemName}`);
+        return false;
       }
     } else {
-      bot.chat(`I don't know how to craft ${itemName}`)
-      return false
+      bot.chat(`I don't know how to craft ${itemName}`);
+      return false;
     }
   }
 
   // If we need a crafting table, go to it
   if (craftingTable) {
-    bot.chat(`Moving to crafting table to craft ${count}x ${itemName}`)
+    bot.chat(`Moving to crafting table to craft ${count}x ${itemName}`);
     try {
-      const goal = new GoalLookAtBlock(craftingTable.position, bot.world)
-      await bot.pathfinder.goto(goal)
+      const goal = new GoalLookAtBlock(craftingTable.position, bot.world);
+      await bot.pathfinder.goto(goal);
     } catch (error) {
-      bot.chat(`Failed to reach crafting table: ${error.message}`)
-      return false
+      bot.chat(`Failed to reach crafting table: ${error.message}`);
+      return false;
     }
   } else {
-    bot.chat(`Crafting ${count}x ${itemName}`)
+    bot.chat(`Crafting ${count}x ${itemName}`);
   }
 
   // Get updated recipes with the potentially found crafting table
-  const availableRecipes = bot.recipesFor(itemId, null, 1, craftingTable)
+  const availableRecipes = bot.recipesFor(itemId, null, 1, craftingTable);
 
   if (availableRecipes.length === 0) {
-    bot.chat(`I can't craft ${itemName} right now`)
-    return false
+    bot.chat(`I can't craft ${itemName} right now`);
+    return false;
   }
 
   // Craft the item
   try {
-    await bot.craft(availableRecipes[0], count, craftingTable)
-    bot.chat(`Successfully crafted ${count}x ${itemName}`)
-    return true
+    await bot.craft(availableRecipes[0], count, craftingTable);
+    bot.chat(`Successfully crafted ${count}x ${itemName}`);
+    return true;
   } catch (error) {
-    bot.chat(`Failed to craft ${itemName}: ${error.message}`)
-    return false
+    bot.chat(`Failed to craft ${itemName}: ${error.message}`);
+    return false;
   }
 }
 
@@ -438,82 +437,82 @@ async function craftItemByName (itemName, count = 1) {
  * @param {string} playerName - The name of the player
  * @param {string} blockName - The name of the block to place
  */
-async function placeBlockNearPlayer (playerName, blockName) {
-  const player = bot.players[playerName]
+async function placeBlockNearPlayer(playerName, blockName) {
+  const player = bot.players[playerName];
 
   if (!player || !player.entity) {
-    bot.chat(`I can't see ${playerName}`)
-    return false
+    bot.chat(`I can't see ${playerName}`);
+    return false;
   }
 
   if (!minecraftData.blocksByName[blockName]) {
-    bot.chat(`Block "${blockName}" not found in this Minecraft version`)
-    return false
+    bot.chat(`Block "${blockName}" not found in this Minecraft version`);
+    return false;
   }
 
   // Check if we have the block in our inventory
-  const blockId = minecraftData.blocksByName[blockName].id
-  const itemId = minecraftData.itemsByName[blockName]?.id || blockId
+  const blockId = minecraftData.blocksByName[blockName].id;
+  const itemId = minecraftData.itemsByName[blockName]?.id || blockId;
 
-  const item = bot.inventory.items().find(item => item.type === itemId)
+  const item = bot.inventory.items().find((item) => item.type === itemId);
   if (!item) {
-    bot.chat(`I don't have any ${blockName} in my inventory`)
-    return false
+    bot.chat(`I don't have any ${blockName} in my inventory`);
+    return false;
   }
 
   // Go near the player
   try {
-    await followPlayer(playerName, 3)
+    await followPlayer(playerName, 3);
   } catch (error) {
-    bot.chat(`Failed to reach ${playerName}: ${error.message}`)
-    return false
+    bot.chat(`Failed to reach ${playerName}: ${error.message}`);
+    return false;
   }
 
   // Find a suitable place to put the block
-  const playerPos = player.entity.position.floored()
+  const playerPos = player.entity.position.floored();
   const offsets = [
     new Vec3(1, 0, 0),
     new Vec3(-1, 0, 0),
     new Vec3(0, 0, 1),
-    new Vec3(0, 0, -1)
-  ]
+    new Vec3(0, 0, -1),
+  ];
 
-  let placeBlock = null
-  let placeVector = null
+  let placeBlock = null;
+  let placeVector = null;
 
   for (const offset of offsets) {
-    const blockPos = playerPos.plus(offset)
-    const block = bot.blockAt(blockPos)
+    const blockPos = playerPos.plus(offset);
+    const block = bot.blockAt(blockPos);
 
-    if (block.name === 'air') {
+    if (block.name === "air") {
       // We need a reference block to place against
-      const refPos = blockPos.offset(0, -1, 0)
-      const refBlock = bot.blockAt(refPos)
+      const refPos = blockPos.offset(0, -1, 0);
+      const refBlock = bot.blockAt(refPos);
 
-      if (refBlock.name !== 'air') {
-        placeBlock = refBlock
-        placeVector = new Vec3(0, 1, 0)
-        break
+      if (refBlock.name !== "air") {
+        placeBlock = refBlock;
+        placeVector = new Vec3(0, 1, 0);
+        break;
       }
     }
   }
 
   if (!placeBlock) {
-    bot.chat("I couldn't find a suitable place to put the block")
-    return false
+    bot.chat("I couldn't find a suitable place to put the block");
+    return false;
   }
 
   // Equip the block
-  await bot.equip(item, 'hand')
+  await bot.equip(item, "hand");
 
   // Place the block
   try {
-    await bot.placeBlock(placeBlock, placeVector)
-    bot.chat(`Placed ${blockName} near ${playerName}`)
-    return true
+    await bot.placeBlock(placeBlock, placeVector);
+    bot.chat(`Placed ${blockName} near ${playerName}`);
+    return true;
   } catch (error) {
-    bot.chat(`Failed to place ${blockName}: ${error.message}`)
-    return false
+    bot.chat(`Failed to place ${blockName}: ${error.message}`);
+    return false;
   }
 }
 
@@ -527,24 +526,24 @@ async function placeBlockNearPlayer (playerName, blockName) {
  * @param {number} face_z - Z component of face vector
  * @param {object} item - The item to place
  */
-async function placeBlock (x, y, z, face_x, face_y, face_z, item) {
-  const blockPos = new Vec3(x, y, z)
-  const block = bot.blockAt(blockPos)
+async function placeBlock(x, y, z, face_x, face_y, face_z, item) {
+  const blockPos = new Vec3(x, y, z);
+  const block = bot.blockAt(blockPos);
 
-  if (!block || block.name === 'air') {
-    console.log('Cannot place block on air')
-    return false
+  if (!block || block.name === "air") {
+    console.log("Cannot place block on air");
+    return false;
   }
 
-  const faceVector = new Vec3(face_x, face_y, face_z)
+  const faceVector = new Vec3(face_x, face_y, face_z);
 
   // Check if bot has the item in inventory
-  const inventory = bot.inventory.items()
-  const mcItem = inventory.find(invItem => invItem.type === item.type)
+  const inventory = bot.inventory.items();
+  const mcItem = inventory.find((invItem) => invItem.type === item.type);
 
   if (!mcItem) {
-    console.log('Bot does not have the required item in inventory')
-    return false
+    console.log("Bot does not have the required item in inventory");
+    return false;
   }
 
   // Go to the block
@@ -553,23 +552,23 @@ async function placeBlock (x, y, z, face_x, face_y, face_z, item) {
       block.position.plus(faceVector),
       bot.world,
       {
-        range: 4
-      }
-    )
-    await bot.pathfinder.goto(goal)
+        range: 4,
+      },
+    );
+    await bot.pathfinder.goto(goal);
   } catch (error) {
-    console.log(`Failed to reach placement position: ${error.message}`)
-    return false
+    console.log(`Failed to reach placement position: ${error.message}`);
+    return false;
   }
 
   // Place the block
   try {
-    await bot.equip(mcItem, 'hand')
-    await bot.placeBlock(block, faceVector)
-    return true
+    await bot.equip(mcItem, "hand");
+    await bot.placeBlock(block, faceVector);
+    return true;
   } catch (error) {
-    console.log(`Error placing block: ${error.message}`)
-    return false
+    console.log(`Error placing block: ${error.message}`);
+    return false;
   }
 }
 
@@ -582,40 +581,40 @@ async function placeBlock (x, y, z, face_x, face_y, face_z, item) {
  * @param {number} z - Z coordinate
  * @returns {Promise<Furnace|null>} - The furnace object or null if failed
  */
-async function furnaceInfo (x, y, z) {
-  const furnacePos = new Vec3(x, y, z)
-  const furnaceBlock = bot.blockAt(furnacePos)
+async function furnaceInfo(x, y, z) {
+  const furnacePos = new Vec3(x, y, z);
+  const furnaceBlock = bot.blockAt(furnacePos);
 
   if (!furnaceBlock) {
-    console.log('Furnace block not found')
-    return null
+    console.log("Furnace block not found");
+    return null;
   }
 
-  const furnaceTypes = ['furnace', 'lit_furnace']
-    .map(name => minecraftData.blocksByName[name]?.id)
-    .filter(id => id !== undefined)
+  const furnaceTypes = ["furnace", "lit_furnace"]
+    .map((name) => minecraftData.blocksByName[name]?.id)
+    .filter((id) => id !== undefined);
 
   if (!furnaceTypes.includes(furnaceBlock.type)) {
-    console.log(`Block is not a furnace, it is: ${furnaceBlock.displayName}`)
-    return null
+    console.log(`Block is not a furnace, it is: ${furnaceBlock.displayName}`);
+    return null;
   }
 
   // Go to the furnace
   try {
-    const goal = new GoalLookAtBlock(furnacePos, bot.world)
-    await bot.pathfinder.goto(goal)
+    const goal = new GoalLookAtBlock(furnacePos, bot.world);
+    await bot.pathfinder.goto(goal);
   } catch (error) {
-    console.log(`Failed to reach furnace: ${error.message}`)
-    return null
+    console.log(`Failed to reach furnace: ${error.message}`);
+    return null;
   }
 
   // Open the furnace
   try {
-    const furnace = await bot.openFurnace(furnaceBlock)
-    return furnace
+    const furnace = await bot.openFurnace(furnaceBlock);
+    return furnace;
   } catch (error) {
-    console.log(`Failed to open furnace: ${error.message}`)
-    return null
+    console.log(`Failed to open furnace: ${error.message}`);
+    return null;
   }
 }
 
@@ -628,93 +627,93 @@ async function furnaceInfo (x, y, z) {
  * @param {string} fuelItemName - Name of fuel to use
  * @returns {Promise<boolean>} - Whether the operation was successful
  */
-async function useFurnace (x, y, z, inputItemName, fuelItemName) {
-  const furnace = await furnaceInfo(x, y, z)
+async function useFurnace(x, y, z, inputItemName, fuelItemName) {
+  const furnace = await furnaceInfo(x, y, z);
 
   if (!furnace) {
-    bot.chat('Failed to access furnace')
-    return false
+    bot.chat("Failed to access furnace");
+    return false;
   }
 
-  const inputId = minecraftData.itemsByName[inputItemName]?.id
-  const fuelId = minecraftData.itemsByName[fuelItemName]?.id
+  const inputId = minecraftData.itemsByName[inputItemName]?.id;
+  const fuelId = minecraftData.itemsByName[fuelItemName]?.id;
 
   if (!inputId || !fuelId) {
-    bot.chat('Invalid item names')
-    furnace.close()
-    return false
+    bot.chat("Invalid item names");
+    furnace.close();
+    return false;
   }
 
   // Find items in inventory
-  const inputItem = bot.inventory.items().find(item => item.type === inputId)
-  const fuelItem = bot.inventory.items().find(item => item.type === fuelId)
+  const inputItem = bot.inventory.items().find((item) => item.type === inputId);
+  const fuelItem = bot.inventory.items().find((item) => item.type === fuelId);
 
   if (!inputItem) {
-    bot.chat(`I don't have any ${inputItemName} to smelt`)
-    furnace.close()
-    return false
+    bot.chat(`I don't have any ${inputItemName} to smelt`);
+    furnace.close();
+    return false;
   }
 
   if (!fuelItem) {
-    bot.chat(`I don't have any ${fuelItemName} to use as fuel`)
-    furnace.close()
-    return false
+    bot.chat(`I don't have any ${fuelItemName} to use as fuel`);
+    furnace.close();
+    return false;
   }
 
   // Add fuel if needed
   if (!furnace.fuelItem() || furnace.fuel === 0) {
-    bot.chat(`Adding ${fuelItemName} as fuel`)
+    bot.chat(`Adding ${fuelItemName} as fuel`);
     try {
-      await furnace.putFuel(fuelItem.type, null, 1)
+      await furnace.putFuel(fuelItem.type, null, 1);
     } catch (error) {
-      bot.chat(`Failed to add fuel: ${error.message}`)
-      furnace.close()
-      return false
+      bot.chat(`Failed to add fuel: ${error.message}`);
+      furnace.close();
+      return false;
     }
   }
 
   // Add input
-  bot.chat(`Adding ${inputItemName} to smelt`)
+  bot.chat(`Adding ${inputItemName} to smelt`);
   try {
-    await furnace.putInput(inputItem.type, null, 1)
+    await furnace.putInput(inputItem.type, null, 1);
   } catch (error) {
-    bot.chat(`Failed to add input: ${error.message}`)
-    furnace.close()
-    return false
+    bot.chat(`Failed to add input: ${error.message}`);
+    furnace.close();
+    return false;
   }
 
   // Wait for smelting to complete
-  bot.chat('Waiting for smelting to complete...')
-  furnace.on('update', () => {
+  bot.chat("Waiting for smelting to complete...");
+  furnace.on("update", () => {
     console.log(
       `Fuel: ${Math.round(furnace.fuel * 100)}%, Progress: ${Math.round(
-        furnace.progress * 100
-      )}%`
-    )
-  })
+        furnace.progress * 100,
+      )}%`,
+    );
+  });
 
   // Check every second if smelting is complete
   while (furnace.inputItem() && furnace.progress < 1) {
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    await new Promise((resolve) => setTimeout(resolve, 1000));
   }
 
   // Collect the output
   if (furnace.outputItem()) {
-    bot.chat('Collecting the output')
+    bot.chat("Collecting the output");
     try {
-      const outputItem = await furnace.takeOutput()
-      bot.chat(`Got ${outputItem.displayName}`)
+      const outputItem = await furnace.takeOutput();
+      bot.chat(`Got ${outputItem.displayName}`);
     } catch (error) {
-      bot.chat(`Failed to collect output: ${error.message}`)
-      furnace.close()
-      return false
+      bot.chat(`Failed to collect output: ${error.message}`);
+      furnace.close();
+      return false;
     }
   } else {
-    bot.chat('No output to collect')
+    bot.chat("No output to collect");
   }
 
-  furnace.close()
-  return true
+  furnace.close();
+  return true;
 }
 
 // ===== Combat Functions =====
@@ -724,62 +723,62 @@ async function useFurnace (x, y, z, inputItemName, fuelItemName) {
  * @param {string} entityType - The type of entity to attack
  * @param {number} maxDistance - Maximum search distance
  */
-async function attackEntity (entityType, maxDistance = 16) {
+async function attackEntity(entityType, maxDistance = 16) {
   const entities = Object.values(bot.entities).filter(
-    entity =>
+    (entity) =>
       entity.name === entityType &&
-      entity.position.distanceTo(bot.entity.position) <= maxDistance
-  )
+      entity.position.distanceTo(bot.entity.position) <= maxDistance,
+  );
 
   if (entities.length === 0) {
-    bot.chat(`No ${entityType} found within ${maxDistance} blocks`)
-    return false
+    bot.chat(`No ${entityType} found within ${maxDistance} blocks`);
+    return false;
   }
 
   // Find the closest entity
   const closestEntity = entities.reduce(
     (closest, entity) => {
-      const distance = entity.position.distanceTo(bot.entity.position)
-      return distance < closest.distance ? { entity, distance } : closest
+      const distance = entity.position.distanceTo(bot.entity.position);
+      return distance < closest.distance ? { entity, distance } : closest;
     },
-    { entity: null, distance: Infinity }
-  ).entity
+    { entity: null, distance: Infinity },
+  ).entity;
 
   if (!closestEntity) {
-    bot.chat(`No ${entityType} found within ${maxDistance} blocks`)
-    return false
+    bot.chat(`No ${entityType} found within ${maxDistance} blocks`);
+    return false;
   }
 
   bot.chat(
     `Attacking ${entityType} that is ${Math.round(
-      closestEntity.position.distanceTo(bot.entity.position)
-    )} blocks away`
-  )
+      closestEntity.position.distanceTo(bot.entity.position),
+    )} blocks away`,
+  );
 
   // Equip best weapon (assuming sword is better)
   const swords = bot.inventory
     .items()
-    .filter(item => item.name.includes('sword'))
+    .filter((item) => item.name.includes("sword"));
 
   if (swords.length > 0) {
     // Sort swords by material (assuming material is the first part of the name)
     const swordMaterials = [
-      'wooden',
-      'stone',
-      'golden',
-      'iron',
-      'diamond',
-      'netherite'
-    ]
+      "wooden",
+      "stone",
+      "golden",
+      "iron",
+      "diamond",
+      "netherite",
+    ];
     swords.sort((a, b) => {
-      const materialA = a.name.split('_')[0]
-      const materialB = b.name.split('_')[0]
+      const materialA = a.name.split("_")[0];
+      const materialB = b.name.split("_")[0];
       return (
         swordMaterials.indexOf(materialB) - swordMaterials.indexOf(materialA)
-      )
-    })
+      );
+    });
 
-    await bot.equip(swords[0], 'hand')
+    await bot.equip(swords[0], "hand");
   }
 
   // Move to the entity and attack
@@ -789,21 +788,20 @@ async function attackEntity (entityType, maxDistance = 16) {
         closestEntity.position.x,
         closestEntity.position.y,
         closestEntity.position.z,
-        2
-      )
-    )
+        2,
+      ),
+    );
 
     // Look at the entity and attack
-    await bot.lookAt(closestEntity.position.offset(0, closestEntity.height, 0))
-    bot.attack(closestEntity)
+    await bot.lookAt(closestEntity.position.offset(0, closestEntity.height, 0));
+    bot.attack(closestEntity);
 
-    return true
+    return true;
   } catch (error) {
-    bot.chat(`Failed to attack ${entityType}: ${error.message}`)
-    return false
+    bot.chat(`Failed to attack ${entityType}: ${error.message}`);
+    return false;
   }
 }
-
 
 module.exports = {
   setPosition,
@@ -819,9 +817,8 @@ module.exports = {
   attackEntity,
   bot,
   minecraftData,
-  connectedToServer
-}
-
+  connectedToServer,
+};
 
 // ==== Docker Test ====
 
