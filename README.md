@@ -141,7 +141,7 @@ bot.on('chat', (username, message) => {
 
 ## Bot Function Reference
 
-Below are the key example functions from your Mineflayer bot and their purpose:
+Below I describe all the example functions that I have stolen from another course.
 
 ### Movement Functions
 
